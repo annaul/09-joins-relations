@@ -28,7 +28,11 @@ app.get('/articles/all', function(request, response) {
   client.connect(function(err) {
     if (err) console.error(err);
     client.query(
-      ``, // TODO: Write a SQL query which inner joins the data from articles and authors for all records
+// DONE: Write a SQL query which inner joins the data from articles and authors for all records
+      `SELECT *
+      FROM articles
+      INNER JOIN authors
+      ON articles.author_id=authors.author_id`,
       function(err, result) {
         if (err) console.error(err);
         response.send(result);
@@ -42,8 +46,16 @@ app.post('/articles/insert', function(request, response) {
   let client = new pg.Client(conString)
 
   client.query(
-    '', // TODO: Write a SQL query to insert a new author, ON CONFLICT DO NOTHING
-    [], // TODO: Add the author and "authorUrl" as data for the SQL query
+    `IF NOT EXISTS (INSERT INTO articles WHERE author=$1)
+   BEGIN
+   INSERT INTO articles(author, "authorUrl") VALUES($1 $2);
+   END
+   `, // DONE: Write a SQL query to insert a new author, ON CONFLICT DO NOTHING
+    [
+      request.body.author,
+      request.body.authorUrl
+    ],
+    // DONE: Add the author and "authorUrl" as data for the SQL query
     function(err) {
       if (err) console.error(err)
       queryTwo() // This is our second query, to be executed when this first query is complete.
@@ -52,8 +64,11 @@ app.post('/articles/insert', function(request, response) {
 
   function queryTwo() {
     client.query(
-      ``, // TODO: Write a SQL query to retrieve the author_id from the authors table for the new article
-      [], // TODO: Add the author name as data for the SQL query
+      `SELECT author_id
+      FROM authors`,
+// TODO: Write a SQL query to retrieve the author_id from the authors table for the new article
+      [request.author_id],
+// TODO: Add the author name as data for the SQL query
       function(err, result) {
         if (err) console.error(err)
         queryThree(result.rows[0].author_id) // This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query
