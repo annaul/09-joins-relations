@@ -52,8 +52,8 @@ app.post('/articles/insert', function(request, response) {
    END
    `, // DONE: Write a SQL query to insert a new author, ON CONFLICT DO NOTHING
     [
-      request.body.author,
-      request.body.authorUrl
+      request.author,
+      request.authorUrl
     ],
     // DONE: Add the author and "authorUrl" as data for the SQL query
     function(err) {
@@ -65,10 +65,11 @@ app.post('/articles/insert', function(request, response) {
   function queryTwo() {
     client.query(
       `SELECT author_id
-      FROM authors`,
-// TODO: Write a SQL query to retrieve the author_id from the authors table for the new article
-      [request.author_id],
-// TODO: Add the author name as data for the SQL query
+      FROM authors
+      `,
+// DONE: Write a SQL query to retrieve the author_id from the authors table for the new article
+      [request.author_id, request.author],
+// DONE: Add the author name as data for the SQL query
       function(err, result) {
         if (err) console.error(err)
         queryThree(result.rows[0].author_id) // This is our third query, to be executed when the second is complete. We are also passing the author_id into our third query
@@ -78,8 +79,9 @@ app.post('/articles/insert', function(request, response) {
 
   function queryThree(author_id) {
     client.query(
-      ``, // TODO: Write a SQL query to insert the new article using the author_id from our previous query
-      [] // TODO: Add the data from our new article, including the author_id, as data for the SQL query.
+      `INSERT INTO articles
+      VALUES($1, $2, $3, $4, $5, $6)`, // DONE: Write a SQL query to insert the new article using the author_id from our previous query
+      [request.article_id, request.author_id, request.title, request.category, request.publishedOn, request.body] // DONE: Add the data from our new article, including the author_id, as data for the SQL query.
     );
   }
 
@@ -91,8 +93,11 @@ app.put('/articles/update', function(request, response) {
   let client = new pg.Client(conString);
 
   client.query(
-    ``, // TODO: Write a SQL query to retrieve the author_id from the authors table for the new article
-    [], // TODO: Add the author name as data for the SQL query
+    `SELECT author_id,
+    FROM authors;
+    ALTER TABLE articles
+    ADD author`, // DONE: Write a SQL query to retrieve the author_id from the authors table for the new article
+    [request.author_id], // DONE: Add the author name as data for the SQL query
     function(err, result) {
       if (err) console.error(err)
       queryTwo(result.rows[0].author_id)
@@ -102,15 +107,19 @@ app.put('/articles/update', function(request, response) {
 
   function queryTwo(author_id) {
     client.query(
-      ``, // TODO: Write a SQL query to update an existing author record
-      [] // TODO: Add the values for this table as data for the SQL query
+      `UPDATE authors
+      SET VALUES($1, $2, $3)
+      WHERE author_id = request.author_id`
+      , // DONE: Write a SQL query to update an existing author record
+      [request.author_id, request.author, request.authorUrl] // DONE: Add the values for this table as data for the SQL query
     )
   }
 
   function queryThree(author_id) {
     client.query(
-      ``, // TODO: Write a SQL query to update an existing article record
-      [] // TODO: Add the values for this table as data for the SQL query
+      `UPDATE articles
+      SET ($1, $2, $3, $4, $5, $6)`, // DONE: Write a SQL query to update an existing article record
+      [request.article_id, request.author_id, request.title, request.category, request.publishedOn, request.body] // DONE: Add the values for this table as data for the SQL query
     );
   }
 
